@@ -19,9 +19,13 @@ except:
     print("Please enter an argument in the command line.")
 
 def init():
+    # TODO: Check if program already initialized
+
     categories = ['Bills\n', 'Auto\n', 'Groceries\n', 'Medical\n', 'Loans\n', 'Subscriptions\n']
     file = open('categories.bills', 'w')
     file.writelines(categories)
+
+    # TODO: Initialize income and expenses
 
 def add_income(category, amount, description):
     pass
