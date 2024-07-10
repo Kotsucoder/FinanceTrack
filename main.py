@@ -1,18 +1,21 @@
 # Boilerplate feature for program to function
 from sys import argv
 import csv
+import json
 import os
 saveLoc = 'data/'
 
 # Commands:
-# add-income category amount description
-# add-expense category amount description
-# add-category name description
+# add income category amount description
+# add expense category amount description
+# add category name description
 # list categories
 # list commands
 # total income
 # total expenses
 # total profit
+# remove income id
+# remove expense id
 # set-budget
 # set-save ***
 # help command
@@ -91,7 +94,7 @@ def initProcess():
     try:
         incomeFile = openFile('income.bills', 'w')
         incomeWriter = csv.writer(incomeFile)
-        incomeWriter.writerow(["date", "category", "amount", "description"])
+        incomeWriter.writerow(["id", "date", "category", "amount", "description"])
         incomeFile.close()
     except:
         return False
@@ -99,7 +102,7 @@ def initProcess():
     try:
         expenseFile = openFile('expense.bills', 'w')
         expenseWriter = csv.writer(expenseFile)
-        expenseWriter.writerow(["date", "category", "amount", "description"])
+        expenseWriter.writerow(["id", "date", "category", "amount", "description"])
         expenseFile.close()
     except:
         return False
@@ -138,6 +141,12 @@ def init(save_location = None):
 def add_income(category, amount, description):
     pass
 
+def add_expense(category, amount, description):
+    pass
+
+def add_category(category, description):
+    pass
+
 if __name__ == '__main__':
     # Determines the current save location, sets to default if saveloc.bills doesn't exist.
     try:
@@ -160,10 +169,12 @@ if __name__ == '__main__':
     except:
         attribute = [None]
 
+
     # Runs the command
     match command:
         case 'init':
             init(attribute[0])
+
         case 'set-save':
             if attribute[0] == None:
                 print("Warning: Save location will be set to the default. Is this what you want to do? (Y/N)")
@@ -173,7 +184,43 @@ if __name__ == '__main__':
                 else:
                     attribute[0] = saveLoc
             setSave(attribute[0])
+
+        case 'add':
+            good = True
+            validTypes = ['income', 'expense', 'category']
+
+            if good:
+                try:
+                    type = attribute[0]
+                    category = attribute[1]
+                    description = attribute[3]
+                except:
+                    print("Please enter all required attributes.")
+                    print("Required Attributes:\n\tType (Income, Expense, Category)\n\tCategory\n\tAmount (Except if adding Category)\n\tDescription")
+                    good = False
+
+            if good and type not in validTypes:
+                print("Please enter a valid option for Type.\nValid options are:\n\tIncome\n\tExpense\n\tCategory")
+                good = False
+
+            if good and type is not 'category':
+                try:
+                    amount = float(attribute[2])
+                except:
+                    print("Amount must be a number.")
+                    good = False
+
+            if good:
+                match type:
+                    case 'income':
+                        add_income(category, amount, description)
+                    case 'expense':
+                        add_expense(category, amount, description)
+                    case 'category':
+                        add_category(category, description)
+                        
         case None:
             print("Please enter an argument in the command line.")
+
         case _:
             print("Invalid command. Use 'list commands' to see list of commands. Use 'help' to learn more about a command.")
