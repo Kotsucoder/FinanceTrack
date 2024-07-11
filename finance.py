@@ -244,6 +244,16 @@ def list_commands(suppress = False):
     return commands
 
 def set_budget(budget, category):
+    """
+    Sets the budget in budget.bills given an appropriate category.
+
+    Args:
+        budget (float): The budget amount.
+        category (str): Which category to impliment the budget.
+
+    Returns:
+        bool: True if successful, False if failed.
+    """
     file = openFile('categories.bills', 'r')
     categories = file.readlines()
     file.close()
@@ -261,20 +271,37 @@ def set_budget(budget, category):
         budgetContent[category] = budget
     else:
         print("Please select a valid category.")
+        return False
 
     file = openFile('budget.bills', 'w')
     json.dump(budgetContent, file)
     file.close()
+    return True
 
-def read_budget():
+def read_budget(suppress = False):
+    """
+    Provides the contents of budget file.
+
+    Args:
+        suppress (bool): Does not print content to terminal if set to True.
+
+    Returns:
+        dict: Content of budget.bills
+    """
     try:
         file = openFile('budget.bills', 'r')
         budgetContent = json.load(file)
         file.close()
 
-        print(budgetContent)
+        if not suppress:
+            for item in budgetContent:
+                print(f"{item}: ${budgetContent[item]:.2f}")
+
+        return budgetContent
     except:
-        print("Please set a budget.")
+        if not suppress:
+            print("Please set a budget.")
+        return None
 
 if __name__ == '__main__':
     # Determines the current save location, sets to default if saveloc.bills doesn't exist.
