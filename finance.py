@@ -3,20 +3,21 @@ from sys import argv
 import csv
 import os
 from datetime import datetime
+import json
 saveLoc = 'data/'
 
 # Commands:
 # add income category amount description ***
 # add expense category amount description ***
 # add category name description ***
-# list categories
-# list commands
+# list categories ***
+# list commands ***
 # total income month year
 # total expenses month year
 # total profit month year
 # remove income id
 # remove expense id
-# set-budget
+# set-budget ***
 # set-save ***
 # help command
 # init save-location ***
@@ -242,6 +243,39 @@ def list_commands(suppress = False):
         print('init: Initializes this program.')
     return commands
 
+def set_budget(budget, category):
+    file = openFile('categories.bills', 'r')
+    categories = file.readlines()
+    file.close()
+
+    try:
+        file = openFile('budget.bills', 'r')
+        budgetContent = json.load(file)
+        file.close()
+    except:
+        file = openFile('budget.bills', 'w')
+        budgetContent = {}
+        file.close()
+
+    if category + '\n' in categories:
+        budgetContent[category] = budget
+    else:
+        print("Please select a valid category.")
+
+    file = openFile('budget.bills', 'w')
+    json.dump(budgetContent, file)
+    file.close()
+
+def read_budget():
+    try:
+        file = openFile('budget.bills', 'r')
+        budgetContent = json.load(file)
+        file.close()
+
+        print(budgetContent)
+    except:
+        print("Please set a budget.")
+
 if __name__ == '__main__':
     # Determines the current save location, sets to default if saveloc.bills doesn't exist.
     try:
@@ -279,6 +313,21 @@ if __name__ == '__main__':
                 else:
                     attribute[0] = saveLoc
             setSave(attribute[0])
+
+        case 'set-budget':
+            try:
+                budget = attribute[0]
+                category = attribute[1]
+                try:
+                    budget = float(budget)
+                    set_budget(budget, category)
+                except:
+                    print("Budget must be a number.")
+            except:
+                print("Please set a budget amount and category.")
+
+        case 'read-budget':
+            read_budget()
 
         case 'add':
             good = True
