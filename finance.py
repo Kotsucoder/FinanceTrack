@@ -11,9 +11,9 @@ saveLoc = 'data/'
 # add category name description ***
 # list categories
 # list commands
-# total income
-# total expenses
-# total profit
+# total income month year
+# total expenses month year
+# total profit month year
 # remove income id
 # remove expense id
 # set-budget
@@ -199,6 +199,49 @@ def add_category(category):
 
     return category
 
+def list_categories(suppress = False):
+    """
+    Lists all the categories listed in categories.bills.
+
+    Args:
+        suppress (bool): Does not print categories if set to True.
+
+    Returns:
+        list: Content of categories.bills file.
+    """
+    file = openFile('categories.bills', 'r')
+    categories = file.readlines()
+    file.close()
+
+    if not suppress:
+        for category in categories:
+            print(category[:-1])
+
+    return categories
+
+def list_commands(suppress = False):
+    """
+    Lists all the commands in this module with a description of what they do.
+
+    Args:
+        suppress (bool): Does not print commands and description if set to True.
+
+    Returns:
+        list: List of commands.
+    """
+    commands = ['add', 'list', 'total', 'remove', 'set-budget', 'set-save', 'help', 'init']
+
+    if not suppress:
+        print('add: Allows you to add income, expenses, or a new category.')
+        print('list: Lists available categories or commands.')
+        print('total: Provides the total income, expense, or profit for the current or specified month.')
+        print('remove: Removes a line of income or expense based on the given id.')
+        print('set-budget: Creates a budget file that your expenses will be checked against.')
+        print('set-save: Sets the save location for this program.')
+        print('help: Provides additional details about any given command.')
+        print('init: Initializes this program.')
+    return commands
+
 if __name__ == '__main__':
     # Determines the current save location, sets to default if saveloc.bills doesn't exist.
     try:
@@ -272,6 +315,18 @@ if __name__ == '__main__':
                         add_bill('expense.bills', category, amount, description)
                     case 'category':
                         add_category(category)
+
+        case 'list':
+            try:
+                option = attribute[0]
+            except:
+                print("Please choose whether to list categories or commands.")
+
+            match option:
+                case 'categories':
+                    list_categories()
+                case 'commands':
+                    list_commands()
                         
         case None:
             print("Please enter an argument in the command line.")
