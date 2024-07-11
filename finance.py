@@ -4,6 +4,7 @@ import csv
 import os
 from datetime import datetime
 import json
+import random as rand
 saveLoc = 'data/'
 
 # Commands:
@@ -130,11 +131,15 @@ def init(save_location = None):
         question = input("This program has already been initialized. Are you sure you'd like to continue? All existing data will be lost.\nType 'Yes' to confirm: ")
         if question == 'Yes':
             initSuccess = initProcess()
+            initFile = openFile('init.bills', 'w')
+            initFile.write(str(rand.randint(0,999999999)))
+            initFile.close()
         else:
             initSuccess = True
     else:
         initSuccess = initProcess()
         initFile = openFile('init.bills', 'w')
+        initFile.write(str(rand.randint(0,999999999)))
         initFile.close()
 
     return initSuccess
@@ -243,13 +248,29 @@ def list_commands(suppress = False):
         print('init: Initializes this program.')
     return commands
 
-def set_budget(budget, category):
+def init_budget():
+    """
+    Initializes budget file to initial state.
+
+    Returns:
+        str: ID of save location.
+    """
+    file = openFile('budget.bills', 'w')
+    budgetContent = {}
+    file.close()
+    file = openFile('init.bills', 'r')
+    budgetContent['id'] = file.read()
+    file.close()
+    return budgetContent['id']
+
+def set_budget(budget, category, redoInit = False):
     """
     Sets the budget in budget.bills given an appropriate category.
 
     Args:
         budget (float): The budget amount.
         category (str): Which category to impliment the budget.
+        redoInit (bool): Erases budget.bills and creates new one if set to true.
 
     Returns:
         bool: True if successful, False if failed.
@@ -262,10 +283,13 @@ def set_budget(budget, category):
         file = openFile('budget.bills', 'r')
         budgetContent = json.load(file)
         file.close()
-    except:
-        file = openFile('budget.bills', 'w')
-        budgetContent = {}
+        file = openFile('init.bills', 'r')
+        initNumber = file.read()
         file.close()
+        if budgetContent['id'] != initNumber:
+            print("Warning: Budget file contains invalid ID. May contain invalid categories.")
+    except:
+        init_budget()
 
     if category + '\n' in categories:
         budgetContent[category] = budget
@@ -292,10 +316,17 @@ def read_budget(suppress = False):
         file = openFile('budget.bills', 'r')
         budgetContent = json.load(file)
         file.close()
+        file = openFile('categories.bills', 'r')
+        categories = file.readlines()
+        file.close()
 
         if not suppress:
             for item in budgetContent:
-                print(f"{item}: ${budgetContent[item]:.2f}")
+                if item + '\n' in categories:
+                    print(f"{item}: ${budgetContent[item]:.2f}")
+                else:
+                    if item != 'id':
+                        print(f"Warning: Invalid category {item} detected. Please add to categories or remove from file.")
 
         return budgetContent
     except:
@@ -330,6 +361,12 @@ if __name__ == '__main__':
     match command:
         case 'init':
             init(attribute[0])
+        
+        case 'check-init':
+            if checkInitFile():
+                print("Program has been initialized.")
+            else:
+                print("Program not ready. Please run command 'init'.")
 
         case 'set-save':
             if attribute[0] == None:
@@ -340,6 +377,9 @@ if __name__ == '__main__':
                 else:
                     attribute[0] = saveLoc
             setSave(attribute[0])
+
+        case 'read-save':
+            print(saveLoc)
 
         case 'set-budget':
             try:
@@ -355,6 +395,20 @@ if __name__ == '__main__':
 
         case 'read-budget':
             read_budget()
+
+        case 'init-budget':
+            print("Any pre-existing budget file will be erased. Would you like to continue?")
+            print("Type 'Yes' to continue")
+            proceed = input("> ")
+            if proceed == "Yes":
+                init_budget()
+
+        case 'rebase-budget-id':
+            # Will check if all categories are valid, and if so, set the ID.
+            # If invalid categories are detected, ask if user wants to create them.
+            # If Yes, do so, and then set the id.
+            # Otherwise, fail rebase.
+            pass
 
         case 'add':
             good = True
