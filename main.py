@@ -1,13 +1,13 @@
 # Boilerplate feature for program to function
 from sys import argv
 import csv
-import json
 import os
+from datetime import datetime
 saveLoc = 'data/'
 
 # Commands:
-# add income category amount description
-# add expense category amount description
+# add income category amount description ***
+# add expense category amount description ***
 # add category name description
 # list categories
 # list commands
@@ -26,7 +26,7 @@ def setSave(location = 'data/'):
     Sets the current save location. Creates directory if it does not yet exist.
 
     Args:
-        location (str: 'data/'): Path to the desired save location. Defaults to 'data/' if not set.
+        location (str): Path to the desired save location. Defaults to 'data/' if not set.
 
     Returns:
         None
@@ -76,9 +76,9 @@ def initProcess():
     Prepares the main files that FinanceTrack operates with.
 
     Files Created:
-        categories.bills (txt): Contains categories that can be used for income and expenses.  
-        income.bills (csv): Contains all income data. Initialized with headers.  
-        expense.bills (csv): Contains all expense data. Initialized with headers.  
+        categories.bills: Contains categories that can be used for income and expenses.  
+        income.bills: Contains all income data. Initialized with headers.  
+        expense.bills: Contains all expense data. Initialized with headers.  
 
     Returns:
         bool: True if successful, False if process failed.
@@ -138,13 +138,46 @@ def init(save_location = None):
 
     return initSuccess
 
-def add_income(category, amount, description):
-    pass
+def add_bill(filename, category, amount, description):
+    """
+    Adds bill content to file.
 
-def add_expense(category, amount, description):
-    pass
+    Args:
+        filename (str): Name of file to modify with new bill data.
+        category (str): Category of bill. Must be present in categories.bills.
+        amount (float): Amount of the bill.
+        description (str): What the bill was for.
+    
+    Returns:
+        list: Formatted bill data if arguments filled in correctly. Otherwise returns None.
+    """
+    file = openFile(filename, 'r')
+    csvObject = csv.reader(file)
+    content = []
+    for i in csvObject:
+        content.append(i)
+    file.close()
 
-def add_category(category, description):
+    file = openFile('categories.bills', 'r')
+    categories = file.readlines()
+    file.close()
+
+    if category + '\n' in categories:
+        toAdd = [len(content), datetime.today().strftime('%Y%m%d'), category, amount, description]
+        content.append(toAdd)
+
+        file = openFile(filename, 'w')
+        billWriter = csv.writer(file)
+        for item in content:
+            billWriter.writerow(item)
+        file.close()
+
+        return toAdd
+    else:
+        print("Please use a valid category.")
+        return None
+
+def add_category(category):
     pass
 
 if __name__ == '__main__':
@@ -193,19 +226,21 @@ if __name__ == '__main__':
                 try:
                     type = attribute[0]
                     category = attribute[1]
-                    description = attribute[3]
+                    if type != 'category':
+                        amount = attribute[2]
+                        description = attribute[3]
                 except:
                     print("Please enter all required attributes.")
-                    print("Required Attributes:\n\tType (Income, Expense, Category)\n\tCategory\n\tAmount (Except if adding Category)\n\tDescription")
+                    print("Required Attributes:\n\tType (Income, Expense, Category)\n\tCategory\n\tAmount (Except if Category)\n\tDescription (Except if Category)")
                     good = False
 
             if good and type not in validTypes:
                 print("Please enter a valid option for Type.\nValid options are:\n\tIncome\n\tExpense\n\tCategory")
                 good = False
 
-            if good and type is not 'category':
+            if good and type != 'category':
                 try:
-                    amount = float(attribute[2])
+                    amount = float(amount)
                 except:
                     print("Amount must be a number.")
                     good = False
@@ -213,11 +248,11 @@ if __name__ == '__main__':
             if good:
                 match type:
                     case 'income':
-                        add_income(category, amount, description)
+                        add_bill('income.bills', category, amount, description)
                     case 'expense':
-                        add_expense(category, amount, description)
+                        add_bill('expense.bills', category, amount, description)
                     case 'category':
-                        add_category(category, description)
+                        add_category(category)
                         
         case None:
             print("Please enter an argument in the command line.")
