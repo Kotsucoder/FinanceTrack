@@ -8,7 +8,7 @@ saveLoc = 'data/'
 # Commands:
 # add income category amount description ***
 # add expense category amount description ***
-# add category name description
+# add category name description ***
 # list categories
 # list commands
 # total income
@@ -178,7 +178,26 @@ def add_bill(filename, category, amount, description):
         return None
 
 def add_category(category):
-    pass
+    """
+    Adds category to categories.bills file.
+
+    Args:
+        category (str): The category to add to file.
+
+    Returns:
+        str: Repeats the given category.
+    """
+    file = openFile('categories.bills', 'r')
+    categories = file.readlines()
+    file.close()
+
+    categories.append(category + '\n')
+
+    file = openFile('categories.bills', 'w')
+    file.writelines(categories)
+    file.close()
+
+    return category
 
 if __name__ == '__main__':
     # Determines the current save location, sets to default if saveloc.bills doesn't exist.
