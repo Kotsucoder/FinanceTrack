@@ -144,6 +144,18 @@ def init(save_location = None):
 
     return initSuccess
 
+def get_init_id():
+    """
+    Reads the contents of the init file.
+
+    Returns:
+        str: Program Save ID
+    """
+    file = openFile('init.bills', 'r')
+    id = file.read()
+    file.close()
+    return id
+
 def add_bill(filename, category, amount, description):
     """
     Adds bill content to file.
@@ -164,9 +176,7 @@ def add_bill(filename, category, amount, description):
         content.append(i)
     file.close()
 
-    file = openFile('categories.bills', 'r')
-    categories = file.readlines()
-    file.close()
+    categories = list_categories(True)
 
     if category + '\n' in categories:
         toAdd = [len(content), datetime.today().strftime('%Y%m%d'), category, amount, description]
@@ -193,9 +203,7 @@ def add_category(category):
     Returns:
         str: Repeats the given category.
     """
-    file = openFile('categories.bills', 'r')
-    categories = file.readlines()
-    file.close()
+    categories = list_categories(True)
 
     categories.append(category + '\n')
 
@@ -258,10 +266,20 @@ def init_budget():
     file = openFile('budget.bills', 'w')
     budgetContent = {}
     file.close()
-    file = openFile('init.bills', 'r')
-    budgetContent['id'] = file.read()
-    file.close()
+    budgetContent['id'] = get_init_id()
     return budgetContent['id']
+
+def open_budget():
+    """
+    Grabs the budget file.
+
+    Returns:
+        dict: Content of budget file.
+    """
+    file = openFile('budget.bills', 'r')
+    content = json.load(file)
+    file.close()
+    return content
 
 def set_budget(budget, category, redoInit = False):
     """
@@ -280,14 +298,10 @@ def set_budget(budget, category, redoInit = False):
     file.close()
 
     try:
-        file = openFile('budget.bills', 'r')
-        budgetContent = json.load(file)
-        file.close()
-        file = openFile('init.bills', 'r')
-        initNumber = file.read()
-        file.close()
+        budgetContent = read_budget(True)
+        initNumber = get_init_id()
         if budgetContent['id'] != initNumber:
-            print("Warning: Budget file contains invalid ID. May contain invalid categories.")
+            print("Warning: Budget file contains invalid ID. Please run rebase-budget.")
     except:
         init_budget()
 
@@ -326,13 +340,16 @@ def read_budget(suppress = False):
                     print(f"{item}: ${budgetContent[item]:.2f}")
                 else:
                     if item != 'id':
-                        print(f"Warning: Invalid category {item} detected. Please add to categories or remove from file.")
+                        print(f"Warning: Invalid category {item} detected. Please run rebase-budget.")
 
         return budgetContent
     except:
         if not suppress:
             print("Please set a budget.")
         return None
+    
+def rebase_budget():
+    pass
 
 if __name__ == '__main__':
     # Determines the current save location, sets to default if saveloc.bills doesn't exist.
@@ -403,7 +420,7 @@ if __name__ == '__main__':
             if proceed == "Yes":
                 init_budget()
 
-        case 'rebase-budget-id':
+        case 'rebase-budget':
             # Will check if all categories are valid, and if so, set the ID.
             # If invalid categories are detected, ask if user wants to create them.
             # If Yes, do so, and then set the id.
