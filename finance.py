@@ -23,6 +23,145 @@ saveLoc = 'data/'
 # help command
 # init save-location ***
 
+def main():
+    """
+    Main program when run from terminal.
+    """
+
+    # Determines the current save location, sets to default if saveloc.bills doesn't exist.
+    try:
+        dataSource = open('saveloc.bills', 'r')
+        saveLoc = dataSource.read()
+        dataSource.close()
+    except:
+        setSave()
+
+    # Grabs the current command.
+    try:
+        command = argv[1]
+    except:
+        command = None
+
+    # Grabs any command attribute.
+    try:
+        testArgv = argv[2]
+        attribute = argv[2:]
+    except:
+        attribute = [None]
+
+
+    # Runs the command
+    match command:
+        case 'init':
+            init(attribute[0])
+        
+        case 'check-init':
+            if checkInitFile():
+                print("Program has been initialized.")
+            else:
+                print("Program not ready. Please run command 'init'.")
+
+        case 'set-save':
+            if attribute[0] == None:
+                print("Warning: Save location will be set to the default. Is this what you want to do? (Y/N)")
+                setDefault = input("> ")
+                if setDefault == "Y":
+                    attribute[0] = 'data/'
+                else:
+                    attribute[0] = saveLoc
+            setSave(attribute[0])
+
+        case 'read-save':
+            print(saveLoc)
+
+        case 'set-budget':
+            try:
+                budget = attribute[0]
+                category = attribute[1]
+                try:
+                    budget = float(budget)
+                    set_budget(budget, category)
+                except:
+                    print("Budget must be a number.")
+            except:
+                print("Please set a budget amount and category.")
+
+        case 'read-budget':
+            read_budget()
+
+        case 'init-budget':
+            print("Any pre-existing budget file will be erased. Would you like to continue?")
+            print("Type 'Yes' to continue")
+            proceed = input("> ")
+            if proceed == "Yes":
+                init_budget()
+
+        case 'rebase-budget':
+            # Will check if all categories are valid, and if so, set the ID.
+            # If invalid categories are detected, ask if user wants to create them.
+            # If Yes, do so, and then set the id.
+            # Otherwise, fail rebase.
+            pass
+
+        case 'add':
+            good = True
+            validTypes = ['income', 'expense', 'category']
+
+            if good:
+                try:
+                    type = attribute[0]
+                    category = attribute[1]
+                    if type != 'category':
+                        amount = attribute[2]
+                        description = attribute[3]
+                except:
+                    print("Please enter all required attributes.")
+                    print("Required Attributes:\n\tType (Income, Expense, Category)\n\tCategory\n\tAmount (Except if Category)\n\tDescription (Except if Category)")
+                    good = False
+
+            if good and type not in validTypes:
+                print("Please enter a valid option for Type.\nValid options are:\n\tIncome\n\tExpense\n\tCategory")
+                good = False
+
+            if good and type != 'category':
+                try:
+                    amount = float(amount)
+                except:
+                    print("Amount must be a number.")
+                    good = False
+
+            if good:
+                match type:
+                    case 'income':
+                        add_bill('income.bills', category, amount, description)
+                    case 'expense':
+                        add_bill('expense.bills', category, amount, description)
+                    case 'category':
+                        add_category(category)
+
+        case 'list':
+            try:
+                option = attribute[0]
+            except:
+                print("Please choose whether to list categories or commands.")
+
+            match option:
+                case 'categories':
+                    list_categories()
+                case 'commands':
+                    list_commands()
+                        
+        case None:
+            print("Please enter an argument in the command line.")
+
+        case _:
+            print("Invalid command. Use 'list commands' to see list of commands. Use 'help' to learn more about a command.")
+
+
+
+
+
+
 def setSave(location = 'data/'):
     """
     Sets the current save location. Creates directory if it does not yet exist.
@@ -269,18 +408,6 @@ def init_budget():
     budgetContent['id'] = get_init_id()
     return budgetContent['id']
 
-def open_budget():
-    """
-    Grabs the budget file.
-
-    Returns:
-        dict: Content of budget file.
-    """
-    file = openFile('budget.bills', 'r')
-    content = json.load(file)
-    file.close()
-    return content
-
 def set_budget(budget, category, redoInit = False):
     """
     Sets the budget in budget.bills given an appropriate category.
@@ -351,132 +478,7 @@ def read_budget(suppress = False):
 def rebase_budget():
     pass
 
+
+    
 if __name__ == '__main__':
-    # Determines the current save location, sets to default if saveloc.bills doesn't exist.
-    try:
-        dataSource = open('saveloc.bills', 'r')
-        saveLoc = dataSource.read()
-        dataSource.close()
-    except:
-        setSave()
-
-    # Grabs the current command.
-    try:
-        command = argv[1]
-    except:
-        command = None
-
-    # Grabs any command attribute.
-    try:
-        testArgv = argv[2]
-        attribute = argv[2:]
-    except:
-        attribute = [None]
-
-
-    # Runs the command
-    match command:
-        case 'init':
-            init(attribute[0])
-        
-        case 'check-init':
-            if checkInitFile():
-                print("Program has been initialized.")
-            else:
-                print("Program not ready. Please run command 'init'.")
-
-        case 'set-save':
-            if attribute[0] == None:
-                print("Warning: Save location will be set to the default. Is this what you want to do? (Y/N)")
-                setDefault = input("> ")
-                if setDefault == "Y":
-                    attribute[0] = 'data/'
-                else:
-                    attribute[0] = saveLoc
-            setSave(attribute[0])
-
-        case 'read-save':
-            print(saveLoc)
-
-        case 'set-budget':
-            try:
-                budget = attribute[0]
-                category = attribute[1]
-                try:
-                    budget = float(budget)
-                    set_budget(budget, category)
-                except:
-                    print("Budget must be a number.")
-            except:
-                print("Please set a budget amount and category.")
-
-        case 'read-budget':
-            read_budget()
-
-        case 'init-budget':
-            print("Any pre-existing budget file will be erased. Would you like to continue?")
-            print("Type 'Yes' to continue")
-            proceed = input("> ")
-            if proceed == "Yes":
-                init_budget()
-
-        case 'rebase-budget':
-            # Will check if all categories are valid, and if so, set the ID.
-            # If invalid categories are detected, ask if user wants to create them.
-            # If Yes, do so, and then set the id.
-            # Otherwise, fail rebase.
-            pass
-
-        case 'add':
-            good = True
-            validTypes = ['income', 'expense', 'category']
-
-            if good:
-                try:
-                    type = attribute[0]
-                    category = attribute[1]
-                    if type != 'category':
-                        amount = attribute[2]
-                        description = attribute[3]
-                except:
-                    print("Please enter all required attributes.")
-                    print("Required Attributes:\n\tType (Income, Expense, Category)\n\tCategory\n\tAmount (Except if Category)\n\tDescription (Except if Category)")
-                    good = False
-
-            if good and type not in validTypes:
-                print("Please enter a valid option for Type.\nValid options are:\n\tIncome\n\tExpense\n\tCategory")
-                good = False
-
-            if good and type != 'category':
-                try:
-                    amount = float(amount)
-                except:
-                    print("Amount must be a number.")
-                    good = False
-
-            if good:
-                match type:
-                    case 'income':
-                        add_bill('income.bills', category, amount, description)
-                    case 'expense':
-                        add_bill('expense.bills', category, amount, description)
-                    case 'category':
-                        add_category(category)
-
-        case 'list':
-            try:
-                option = attribute[0]
-            except:
-                print("Please choose whether to list categories or commands.")
-
-            match option:
-                case 'categories':
-                    list_categories()
-                case 'commands':
-                    list_commands()
-                        
-        case None:
-            print("Please enter an argument in the command line.")
-
-        case _:
-            print("Invalid command. Use 'list commands' to see list of commands. Use 'help' to learn more about a command.")
+    main()
