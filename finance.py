@@ -97,11 +97,7 @@ def main():
                 init_budget()
 
         case 'rebase-budget':
-            # Will check if all categories are valid, and if so, set the ID.
-            # If invalid categories are detected, ask if user wants to create them.
-            # If Yes, do so, and then set the id.
-            # Otherwise, fail rebase.
-            pass
+            rebase_budget()
 
         case 'add':
             good = True
@@ -404,8 +400,9 @@ def init_budget():
     """
     file = openFile('budget.bills', 'w')
     budgetContent = {}
-    file.close()
     budgetContent['id'] = get_init_id()
+    json.dump(budgetContent, file)
+    file.close()
     return budgetContent['id']
 
 def set_budget(budget, category, redoInit = False):
@@ -476,9 +473,47 @@ def read_budget(suppress = False):
         return None
     
 def rebase_budget():
-    pass
+    """
+    Checks if the budget file is valid for this save, and makes fixes when needed.
+
+    Returns:
+        bool: True if successful, False if failed.
+    """
+    id = get_init_id()
+    categories = list_categories(True)
+    budget = read_budget(True)
+    invalidCategories = []
+
+    validCategories = True
+    for category in budget:
+        if category + '\n' not in categories and category != 'id':
+            validCategories = False
+            invalidCategories.append(category)
+
+    file = openFile('budget.bills', 'w')
+
+    if validCategories:
+        budget['id'] = id
+        json.dump(budget, file)
+        file.close()
+        return True
+    else:
+        print("The following invalid categories were detected:")
+        for category in invalidCategories:
+            print('\t' + category)
+        print("Would you like to create them?\nType 'Yes' if so.")
+        createPrompt = input("> ")
+        if createPrompt == 'Yes':
+            for category in invalidCategories:
+                add_category(category)
+            budget['id'] = id
+            json.dump(budget, file)
+            file.close()
+            return True
+        else:
+            return False
 
 
-    
+
 if __name__ == '__main__':
     main()
