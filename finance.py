@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import json
 import random as rand
+import calendar
 saveLoc = 'data/'
 
 # Commands:
@@ -13,9 +14,9 @@ saveLoc = 'data/'
 # add category name description ***
 # list categories ***
 # list commands ***
-# total income month year
-# total expenses month year
-# total profit month year
+# total income month year ***
+# total expenses month year ***
+# total profit month year ***
 # remove income id
 # remove expense id
 # set-budget ***
@@ -146,6 +147,45 @@ def main():
                     list_categories()
                 case 'commands':
                     list_commands()
+
+        case 'total':
+            try:
+                type = attribute[0]
+
+                if len(attribute) >= 2:
+                    year = int(attribute[1])
+                else:
+                    year = datetime.today().year
+
+                if len(attribute) >= 3:
+                    month = attribute[2]
+                else:
+                    month = str(datetime.today().month)
+
+                if not month.isdigit():
+                    if len(month) == 3:
+                        month = list(calendar.month_abbr).index(month.capitalize())
+                    else:
+                        month = list(calendar.month_name).index(month.capitalize())
+                else:
+                    month = int(month)
+
+                if type == 'income':
+                    totalIncome = total('income.bills', month, year)
+                    print(f"You have earned ${totalIncome:.2f} in {calendar.month_name[month]}, {year}.")
+                elif type == 'expense':
+                    totalExpense = total('expense.bills', month, year)
+                    print(f"You have spent ${totalExpense:.2f} in {calendar.month_name[month]}, {year}.")
+                elif type == 'profit':
+                    income = total('income.bills', month, year)
+                    expense = total('expense.bills', month, year)
+                    totalProfit = income - expense
+                    print(f"You have overall earned ${totalProfit:.2f} in {calendar.month_name[month]}, {year}.")
+                else:
+                    print("Please choose income, expense, or profit.")
+            except:
+                print("Please enter valid options for type, month, and year.")
+                print('Valid types are:\n\tincome\n\texpense\n\tprofit')
                         
         case None:
             print("Please enter an argument in the command line.")
@@ -539,6 +579,45 @@ def rebase_budget(suppress = False, forceAddCats = False):
             return True
         else:
             return False
+        
+def total(file, month, year):
+    """
+    Totals up data from the given csv-formatted file.
+
+    Args:
+        file (str): File to extract data from.
+        month (int): Month filter.
+        year (int): Year filter.
+
+    Returns:
+        float: The calculated total.
+    """
+    file = openFile(file, 'r')
+    csvObject = csv.reader(file)
+    content = []
+    for i in csvObject:
+        content.append(i)
+    file.close()
+    categories = list_categories(True)
+    totalAmount = 0
+
+    h = {
+        'id':0,
+        'date':1,
+        'category':2,
+        'amount':3,
+        'description':4
+    }
+
+    validEntries = []
+    for entry in content[1:]:
+        category = entry[h['category']]
+        eyear = int(entry[h['date']][0:4])
+        emonth = int(entry[h['date']][4:6])
+        amount = float(entry[h['amount']])
+        if category + '\n' in categories and eyear == year and emonth == month:
+            totalAmount += amount
+    return totalAmount
 
 
 
