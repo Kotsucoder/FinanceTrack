@@ -390,14 +390,18 @@ def list_commands(suppress = False):
     commands = ['add', 'list', 'total', 'remove', 'set-budget', 'set-save', 'help', 'init']
 
     if not suppress:
+        print('init: Initializes this program.')
+        print('check-init: Check if your program has been initialized.')
+        print('set-save: Sets the save location for this program.')
+        print('read-save: Prints out the current save location.')
+        print('set-budget: Creates a budget file that your expenses will be checked against.')
+        print('read-budget: Print out current budget.')
+        print('rebase-budget: Make sure all categories in budget are valid.')
         print('add: Allows you to add income, expenses, or a new category.')
         print('list: Lists available categories or commands.')
         print('total: Provides the total income, expense, or profit for the current or specified month.')
         print('remove: Removes a line of income or expense based on the given id.')
-        print('set-budget: Creates a budget file that your expenses will be checked against.')
-        print('set-save: Sets the save location for this program.')
         print('help: Provides additional details about any given command.')
-        print('init: Initializes this program.')
     return commands
 
 def init_budget():
@@ -459,7 +463,7 @@ def read_budget(suppress = False):
         suppress (bool): Does not print content to terminal if set to True.
 
     Returns:
-        dict: Content of budget.bills
+        dict: Content of budget.bills; invalid categories set to None
     """
     try:
         file = openFile('budget.bills', 'r')
@@ -476,6 +480,10 @@ def read_budget(suppress = False):
                 else:
                     if item != 'id':
                         print(f"Warning: Invalid category {item} detected. Please run rebase-budget.")
+        else:
+            for item in budgetContent:
+                if item + '\n' not in categories:
+                    budgetContent[item] = None
 
         return budgetContent
     except:
