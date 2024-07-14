@@ -17,8 +17,8 @@ saveLoc = 'data/'
 # total income month year ***
 # total expenses month year ***
 # total profit month year ***
-# remove income id
-# remove expense id
+# remove income id ***
+# remove expense id ***
 # set-budget ***
 # set-save ***
 # help command
@@ -186,6 +186,23 @@ def main():
             except:
                 print("Please enter valid options for type, month, and year.")
                 print('Valid types are:\n\tincome\n\texpense\n\tprofit')
+
+        case 'remove':
+            try:
+                type = attribute[0]
+                id_to_remove = int(attribute[1])
+                if type == 'income':
+                    success = remove('income.bills', id_to_remove)
+                elif type == 'expense':
+                    success = remove('expense.bills', id_to_remove)
+                else:
+                    print("Invalid type.")
+                    success = True
+
+                if not success:
+                    print("Please enter a valid ID.")
+            except:
+                print("Enter type (income, expense) and ID of item to remove.")
                         
         case None:
             print("Please enter an argument in the command line.")
@@ -580,19 +597,19 @@ def rebase_budget(suppress = False, forceAddCats = False):
         else:
             return False
         
-def total(file, month, year):
+def total(filename, month, year):
     """
     Totals up data from the given csv-formatted file.
 
     Args:
-        file (str): File to extract data from.
+        filename (str): File to extract data from.
         month (int): Month filter.
         year (int): Year filter.
 
     Returns:
         float: The calculated total.
     """
-    file = openFile(file, 'r')
+    file = openFile(filename, 'r')
     csvObject = csv.reader(file)
     content = []
     for i in csvObject:
@@ -618,6 +635,41 @@ def total(file, month, year):
         if category + '\n' in categories and eyear == year and emonth == month:
             totalAmount += amount
     return totalAmount
+
+def remove(filename, id_to_remove):
+    """
+    Removes an entry from either income or expenses.
+
+    Args:
+        filename (str): File to perform remove operation on.
+        id_to_remove (int): ID of entry to remove.
+
+    Returns:
+        bool: True if successful, False if unsuccessful.
+    """
+    file = openFile(filename, 'r')
+    csvObject = csv.reader(file)
+    content = []
+    for i in csvObject:
+        content.append(i)
+    file.close()
+
+    try:
+        del content[id_to_remove]
+    except:
+        return False
+    
+    for index, item in enumerate(content):
+        if index != 0:
+            item[0] = index
+
+    file = openFile(filename, 'w')
+    csvObject = csv.writer(file)
+    for item in content:
+        csvObject.writerow(item)
+    file.close()
+
+    return True
 
 
 
