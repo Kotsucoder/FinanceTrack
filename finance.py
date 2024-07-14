@@ -8,6 +8,16 @@ import random as rand
 import calendar
 saveLoc = 'data/'
 
+# Stretch Goals:
+# Right now, this project is deemed completed.
+# However, if I ever decide to update this project again, this is my checklist:
+# ------------------------
+# Update add expense command to provide warning when near or exceeding budget
+# Provide a way to list income or expenses for any given month.
+# Add a search function to find expenses by amount, name, or category.
+# Create a GUI for this program.
+# ------------------------
+
 # Commands:
 # add income category amount description ***
 # add expense category amount description ***
