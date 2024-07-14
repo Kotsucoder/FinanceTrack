@@ -166,7 +166,7 @@ def setSave(location = 'data/'):
         location (str): Path to the desired save location. Defaults to 'data/' if not set.
 
     Returns:
-        None
+        bool: True if folder had to be created. False if it already existed.
     """
     global saveLoc
     if location[-1] != '/':
@@ -175,8 +175,11 @@ def setSave(location = 'data/'):
     dataSource.write(location)
     saveLoc = location
     dataSource.close()
+    newPath = False
     if not os.path.exists(location):
         os.makedirs(location)
+        newPath = True
+    return newPath
 
 
 def openFile(filename, rw):
@@ -246,12 +249,14 @@ def initProcess():
 
     return True
 
-def init(save_location = None):
+def init(save_location = None, suppress = False, force_creation = False):
     """
     Initializes the program in the current save location. Also sets save location if specified.
 
     Args:
-        save_location (str): Path to the desired save location. Optional.
+        save_location (str): Path to the desired save location if desired to change.
+        suppress (bool): Set True to prevent prompt from being printed to console. Will be treated as "No".
+        force_creation (bool): Suppresses prompt and sets answer to "Yes". Not recommended.
 
     Returns:
         bool: True if successful, False if process failed.
@@ -263,7 +268,11 @@ def init(save_location = None):
     openSuccess = checkInitFile()
 
     if openSuccess:
-        question = input("This program has already been initialized. Are you sure you'd like to continue? All existing data will be lost.\nType 'Yes' to confirm: ")
+        question = None
+        if not suppress and not force_creation:
+            question = input("This program has already been initialized. Are you sure you'd like to continue? All existing data will be lost.\nType 'Yes' to confirm: ")
+        if force_creation:
+            question = 'Yes'
         if question == 'Yes':
             initSuccess = initProcess()
             initFile = openFile('init.bills', 'w')
@@ -405,7 +414,7 @@ def init_budget():
     file.close()
     return budgetContent['id']
 
-def set_budget(budget, category, redoInit = False):
+def set_budget(budget, category, redoInit = False, suppress = False):
     """
     Sets the budget in budget.bills given an appropriate category.
 
@@ -413,6 +422,7 @@ def set_budget(budget, category, redoInit = False):
         budget (float): The budget amount.
         category (str): Which category to impliment the budget.
         redoInit (bool): Erases budget.bills and creates new one if set to true.
+        suppress (bool): Prevent warnings and errors from being printed to console.
 
     Returns:
         bool: True if successful, False if failed.
@@ -424,7 +434,7 @@ def set_budget(budget, category, redoInit = False):
     try:
         budgetContent = read_budget(True)
         initNumber = get_init_id()
-        if budgetContent['id'] != initNumber:
+        if budgetContent['id'] != initNumber and not suppress:
             print("Warning: Budget file contains invalid ID. Please run rebase-budget.")
     except:
         init_budget()
@@ -432,7 +442,8 @@ def set_budget(budget, category, redoInit = False):
     if category + '\n' in categories:
         budgetContent[category] = budget
     else:
-        print("Please select a valid category.")
+        if not suppress:
+            print("Please select a valid category.")
         return False
 
     file = openFile('budget.bills', 'w')
@@ -472,9 +483,13 @@ def read_budget(suppress = False):
             print("Please set a budget.")
         return None
     
-def rebase_budget():
+def rebase_budget(suppress = False, forceAddCats = False):
     """
     Checks if the budget file is valid for this save, and makes fixes when needed.
+
+    Args:
+        suppress (bool): Prevent user from being prompted to add new categories.
+        forceAddCats (bool): Bypass prompt to add new categories and adds them if needed.
 
     Returns:
         bool: True if successful, False if failed.
@@ -498,11 +513,15 @@ def rebase_budget():
         file.close()
         return True
     else:
-        print("The following invalid categories were detected:")
-        for category in invalidCategories:
-            print('\t' + category)
-        print("Would you like to create them?\nType 'Yes' if so.")
-        createPrompt = input("> ")
+        createPrompt = None
+        if not suppress and not forceAddCats:
+            print("The following invalid categories were detected:")
+            for category in invalidCategories:
+                print('\t' + category)
+            print("Would you like to create them?\nType 'Yes' if so.")
+            createPrompt = input("> ")
+        if forceAddCats:
+            createPrompt = 'Yes'
         if createPrompt == 'Yes':
             for category in invalidCategories:
                 add_category(category)
