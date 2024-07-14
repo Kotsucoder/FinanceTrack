@@ -11,7 +11,7 @@ saveLoc = 'data/'
 # Commands:
 # add income category amount description ***
 # add expense category amount description ***
-# add category name description ***
+# add category name ***
 # list categories ***
 # list commands ***
 # total income month year ***
@@ -21,8 +21,120 @@ saveLoc = 'data/'
 # remove expense id ***
 # set-budget ***
 # set-save ***
-# help command
+# help command ***
 # init save-location ***
+
+def commandHelper(command, suppress = False):
+    """
+    This function provides detailed information about any user-facing command in this program.
+
+    Args:
+        command (str): The command to recieve details for.
+        suppress (bool): Set to true to prevent details from being printed to console.
+
+    Returns:
+        str: Multi-line string containing the command's documentation.
+    """
+    match command:
+        case 'add':
+            message = """
+This command will allow you to add income or expenses.
+
+Attributes:
+    type - income or expense
+    category - What category shall be set for this bill.
+    amount - How much was earned or spent.
+    description - A word to describe what the bill was for.
+
+There is another version of this command that will allow you to add categories.
+
+Attributes:
+    type - category
+    name - Name of the category to be added.
+"""
+        case 'list':
+            message = """
+This command will allow you to list all available categories or commands.
+
+Attributes:
+    type - categories or commands
+"""
+        case 'total':
+            message = """
+Allows you to total your income or expenses, or get a look at your net earnings.
+
+Attributes:
+    type - income, expense, or profit
+    month (optional) - Which month to view
+    year (optional) - Which year to view
+"""
+        case 'remove':
+            message = """
+This command will allow you to remove any entry from your income or expenses.
+
+Attributes:
+    type - income or expense
+    id - ID for the item to remove (May add a way to get this easier in the future)
+"""
+        case 'set-budget':
+            message = """
+Sets the budget for any given category. This is currently not used.
+
+Attributes:
+    budget - Amount of the budget.
+    category - Category to apply the budget to.
+"""
+        case 'read-budget':
+            message = """
+Lists out the contents of your budget.
+"""
+        case 'init-budget':
+            messages = """
+Initializes your budget file. This is not required.
+"""
+        case 'rebase-budget':
+            message = """
+If the budget file you are using is found to be invalid, you can use this command to fix it.
+It will check all categories used to ensure they are all valid.
+If any invalid categories are found, you will be given the option to add them all in bulk.
+Otherwise, the budget will be prepped to a valid state.
+"""
+        case 'set-save':
+            message = """
+Sets the location where the .bills files will be stored on your hard drive.
+By default, it is located in the data folder where finance.py is run from.
+
+Attributes:
+    location - Where you want your data to be saved. Leave empty if you wish to reset to default.
+"""
+        case 'read-save':
+            message = """
+Provides the current save location.
+"""
+        case 'init':
+            message = """
+Initializes your save data.
+
+Attributes:
+    location (Optional) - Set a value if you want to change your save location.
+"""
+        case 'check-init':
+            message = """
+Checks if your program has been initialized.
+"""
+        case None:
+            message = """
+No command has been provided.
+"""
+        case _:
+            message = """
+This command does not appear to exist.
+"""
+    
+    if not suppress:
+        print(message)
+    
+    return message
 
 def main():
     """
@@ -153,14 +265,14 @@ def main():
                 type = attribute[0]
 
                 if len(attribute) >= 2:
-                    year = int(attribute[1])
-                else:
-                    year = datetime.today().year
-
-                if len(attribute) >= 3:
-                    month = attribute[2]
+                    month = attribute[1]
                 else:
                     month = str(datetime.today().month)
+
+                if len(attribute) >= 3:
+                    year = int(attribute[2])
+                else:
+                    year = datetime.today().year
 
                 if not month.isdigit():
                     if len(month) == 3:
@@ -203,6 +315,10 @@ def main():
                     print("Please enter a valid ID.")
             except:
                 print("Enter type (income, expense) and ID of item to remove.")
+
+        case 'help':
+            toGet = attribute[0]
+            commandHelper(toGet)
                         
         case None:
             print("Please enter an argument in the command line.")
